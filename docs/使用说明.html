@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CampusAutoLoginWeb · 校园网自动登录守护 使用说明</title>
+<style>
+  :root{
+    --bg:#0f1216;
+    --bg2:#151a21;
+    --card:#171d25;
+    --line:#242c37;
+    --tx:#dfe6ef;
+    --tx2:#9aa7b8;
+    --tx3:#6d7b8d;
+    --ac:#4ea1ff;
+    --ac2:#38d39f;
+    --warn:#f0b849;
+    --err:#f2685a;
+    --mono:"Cascadia Mono","Consolas","SFMono-Regular",Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--bg);color:var(--tx);
+    font:16px/1.75 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px 90px}
+  /* ---------- hero ---------- */
+  header.hero{
+    padding:64px 0 40px;border-bottom:1px solid var(--line);
+    background:radial-gradient(900px 320px at 18% -10%,rgba(78,161,255,.16),transparent 60%),
+               radial-gradient(700px 260px at 88% 0%,rgba(56,211,159,.10),transparent 62%);
+  }
+  .badge{
+    display:inline-block;font:600 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+    color:var(--ac);border:1px solid rgba(78,161,255,.35);background:rgba(78,161,255,.08);
+    padding:7px 11px;border-radius:999px;
+  }
+  h1{font-size:38px;line-height:1.25;margin:18px 0 10px;letter-spacing:-.02em}
+  h1 span{color:var(--ac)}
+  .sub{color:var(--tx2);font-size:17px;max-width:760px;margin:0}
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:26px}
+  .chip{
+    font:12px/1 var(--mono);color:var(--tx2);border:1px solid var(--line);
+    background:var(--bg2);padding:8px 11px;border-radius:8px;
+  }
+  .chip b{color:var(--tx);font-weight:600}
+  /* ---------- layout ---------- */
+  nav.toc{
+    position:sticky;top:0;z-index:9;background:rgba(15,18,22,.9);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);margin:0 -22px 0;padding:10px 22px;
+  }
+  nav.toc a{
+    color:var(--tx3);text-decoration:none;font-size:13.5px;margin-right:18px;white-space:nowrap;
+  }
+  nav.toc a:hover{color:var(--ac)}
+  section{padding:44px 0 8px;border-bottom:1px solid var(--line)}
+  section:last-of-type{border-bottom:0}
+  h2{font-size:23px;margin:0 0 6px;letter-spacing:-.01em}
+  h2 .n{color:var(--ac);font:600 13px/1 var(--mono);margin-right:10px;vertical-align:2px}
+  .lead{color:var(--tx2);margin:0 0 22px;font-size:15px}
+  h3{font-size:16px;margin:28px 0 10px;color:var(--tx)}
+  p{color:var(--tx2);margin:10px 0}
+  p b,li b{color:var(--tx)}
+  ul,ol{color:var(--tx2);padding-left:22px;margin:10px 0}
+  li{margin:6px 0}
+  code{font:13.5px/1.5 var(--mono);background:#0b0e12;border:1px solid var(--line);
+       color:#c8d4e2;padding:1.5px 6px;border-radius:5px}
+  /* ---------- cards / grid ---------- */
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:820px){.g2,.g3{grid-template-columns:1fr}}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 18px 16px;
+  }
+  .card h4{margin:0 0 8px;font-size:14.5px;letter-spacing:.01em}
+  .card p{margin:6px 0;font-size:14px}
+  .card .k{font:600 11.5px/1 var(--mono);letter-spacing:.12em;color:var(--tx3);text-transform:uppercase;display:block;margin-bottom:9px}
+  .ok{border-left:3px solid var(--ac2)}
+  .warnbox{border-left:3px solid var(--warn)}
+  .errbox{border-left:3px solid var(--err)}
+  .infobox{border-left:3px solid var(--ac)}
+  /* ---------- flow ---------- */
+  .flow{display:grid;gap:10px;margin:18px 0}
+  .step{
+    display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start;
+    background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;
+  }
+  .step .idx{
+    font:700 13px/32px var(--mono);text-align:center;color:var(--ac);
+    width:32px;height:32px;border-radius:50%;background:rgba(78,161,255,.1);
+    border:1px solid rgba(78,161,255,.3);
+  }
+  .step h5{margin:2px 0 4px;font-size:14.5px}
+  .step p{margin:0;font-size:13.8px}
+  .arrow{color:var(--tx3);text-align:center;font:13px/1 var(--mono);margin:-2px 0}
+  /* ---------- table ---------- */
+  .tw{overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin:16px 0}
+  table{border-collapse:collapse;width:100%;font-size:14px}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#12171e;color:var(--tx);font-weight:600;font-size:13px;letter-spacing:.02em}
+  tr:last-child td{border-bottom:0}
+  td code{white-space:nowrap}
+  td:first-child{color:var(--tx);white-space:nowrap;font-family:var(--mono);font-size:13px}
+  /* ---------- code block ---------- */
+  pre{
+    background:#0b0e12;border:1px solid var(--line);border-radius:12px;
+    padding:15px 16px;overflow:auto;margin:14px 0;
+  }
+  pre code{background:none;border:0;padding:0;font-size:13.4px;line-height:1.65;color:#c9d6e4}
+  .cmt{color:#5f6f82}
+  .str{color:#8fd6a8}
+  .kw{color:#7fb6ff}
+  /* ---------- tag states ---------- */
+  .st{display:inline-block;font:600 11.5px/1 var(--mono);padding:4px 8px;border-radius:6px;margin-right:6px}
+  .st.a{color:#0d1a12;background:var(--ac2)}
+  .st.b{color:#1a1305;background:var(--warn)}
+  .st.c{color:#1a0b09;background:var(--err)}
+  .st.d{color:#08121f;background:var(--ac)}
+  footer{color:var(--tx3);font-size:13px;padding:34px 0 0;text-align:center}
+  footer code{font-size:12.5px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="badge">Windows · Python 3 · 无第三方依赖</span>
+    <h1>CampusAutoLoginWeb<br><span>校园网自动登录守护</span></h1>
+    <p class="sub">
+      连着校园 Wi-Fi、却上不了外网的时候，自动把网页认证做完。
+      平时完全静默：没有窗口、没有任务栏图标，只在真的需要认证时才动一次。
+    </p>
+    <div class="meta">
+      <span class="chip">入口 <b>run-autologin-web.cmd</b></span>
+      <span class="chip">静默拉起 <b>start-hidden.vbs</b></span>
+      <span class="chip">浏览器 <b>Edge / CDP</b></span>
+      <span class="chip">免打扰 <b>00:00 – 06:30</b></span>
+      <span class="chip">单实例 <b>lock + pid 校验</b></span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="wrap" style="padding:0">
+    <a href="#what">是什么</a>
+    <a href="#how">怎么判断</a>
+    <a href="#run">三种运行状态</a>
+    <a href="#deploy">部署</a>
+    <a href="#config">配置</a>
+    <a href="#log">日志</a>
+    <a href="#files">文件清单</a>
+    <a href="#trouble">排错</a>
+    <a href="#limit">边界</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- ============ 1 ============ -->
+<section id="what">
+  <h2><span class="n">01</span>它解决的问题</h2>
+  <p class="lead">校园网是「先认证、后上网」的：网线插着、Wi-Fi 连着，但只要那条线路的认证会话不在了，所有报文都会被上游丢掉，浏览器也不会自动弹认证页。</p>
+
+  <div class="grid g3">
+    <div class="card infobox">
+      <span class="k">现象</span>
+      <h4>能连网，不能上网</h4>
+      <p>默认网关 ping 得通、认证门户打得开，唯独公网全超时。系统右下角显示「已连接，但无 Internet」。</p>
+    </div>
+    <div class="card infobox">
+      <span class="k">原因</span>
+      <h4>认证会话掉了</h4>
+      <p>上游只放行已认证会话的转发。会话被清掉后地址不变、状态仍是已连接，报文却出不去。</p>
+    </div>
+    <div class="card infobox">
+      <span class="k">本工具</span>
+      <h4>把认证自动做完</h4>
+      <p>定时探外网，一旦发现「在校园网 + 外网不通」，就拉起浏览器走完认证，再用探针确认结果。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 2 ============ -->
+<section id="how">
+  <h2><span class="n">02</span>它怎么判断（四层，逐层短路）</h2>
+  <p class="lead">每一层都先判定再动作，能不动作就不动作，避免无意义地开浏览器、也避免把服务端刷出风控。</p>
+
+  <div class="flow">
+    <div class="step">
+      <div class="idx">1</div>
+      <div>
+        <h5>探外网：一个 204 探针</h5>
+        <p>请求 <code>generate_204</code> 这类地址，返回 204/200 就算在线。在线就什么都不做，直接睡（默认 3600 秒后再看）。<b>不用 ping 判断</b>，因为上游只封转发，ICMP 常常还是通的，会骗人。</p>
+      </div>
+    </div>
+    <div class="arrow">↓ 外网不通</div>
+    <div class="step">
+      <div class="idx">2</div>
+      <div>
+        <h5>确认自己在校园网里</h5>
+        <p>三条任一成立即可：默认网关等于配置里的校园网关、WAN 网关 <code>10.100.0.1</code> 可达、认证门户 TCP 可达。不在校园网（比如连着手机热点）就不动手。</p>
+      </div>
+    </div>
+    <div class="arrow">↓ 在校园网</div>
+    <div class="step">
+      <div class="idx">3</div>
+      <div>
+        <h5>走 AC 重定向，拿到「真正可用」的登录页</h5>
+        <p>这一步是成败关键：直接打开门户首页或直连 <code>login.jsp</code>，提交时会缺 <code>wlanuserip / wlanacname / nasip / mac</code> 这几个由接入设备算好的密文参数，服务端会回「Web认证接入设备不存在」。所以必须先访问一个会触发 302 的地址，让 AC 把浏览器带到带参数的登录页。</p>
+      </div>
+    </div>
+    <div class="arrow">↓ 拿到带参登录页</div>
+    <div class="step">
+      <div class="idx">4</div>
+      <div>
+        <h5>填表、选出口、点登录，然后用探针验收</h5>
+        <p>通过 CDP 往 Edge 里注入填充脚本：写学号密码、选中出口（校园网 / 中国移动 / 中国联通）、触发页面自己的 <code>doauthen()</code>。之后<b>只看探针结果</b>，页面说什么都不算数。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card ok" style="margin-top:6px">
+    <span class="k">为什么不看返回话术</span>
+    <h4>服务端的提示不可靠</h4>
+    <p>同一句「登录成功」可能出现在会话早已失效的壳页上；反过来真成功时也可能只返回一段跳转脚本。唯一的硬判据是「公网探针从失败变成 204」。</p>
+  </div>
+</section>
+
+<!-- ============ 3 ============ -->
+<section id="run">
+  <h2><span class="n">03</span>三种运行状态</h2>
+  <p class="lead">双击、开机、重复双击，表现各不相同，但共同点是：不会留下窗口，也不会堆出多份进程。</p>
+
+  <div class="tw">
+    <table>
+      <thead>
+        <tr><th>触发方式</th><th>它会做什么</th><th>窗口</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>双击<br>run-autologin-web.cmd</td>
+          <td>打印 python 路径、配置、日志位置、免打扰时段 → 注册开机自启 → 用 <code>wscript</code> 拉起无窗口实例 → 校验锁里的 pid 真活着 → 显示 <code>[ok] running in background</code> 后自己退出</td>
+          <td>约 7 秒后自动关闭</td>
+        </tr>
+        <tr>
+          <td>开机自启</td>
+          <td>Startup 项调用 <code>wscript.exe start-hidden.vbs</code>，vbs 以窗口样式 0 执行 <code>run-autologin-web.cmd hidden</code>，进入守护循环</td>
+          <td>全程无窗口</td>
+        </tr>
+        <tr>
+          <td>已在跑时再双击</td>
+          <td>读锁里的 pid，用 <code>tasklist</code> 校验进程名确实是 python，判定为重复启动，提示 <code>already running</code></td>
+          <td>约 3 秒后自动关闭</td>
+        </tr>
+        <tr>
+          <td>带参数调用</td>
+          <td><code>--diagnose</code> 打印六行判断依据；<code>--once</code> 手动跑一轮并输出每个候选页的结果；<code>--force</code> 忽略免打扰窗口</td>
+          <td>有窗口，不干扰后台那份</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card warnbox">
+    <span class="k">两个容易误会的点</span>
+    <h4>1) 窗口关了不等于脚本停了</h4>
+    <p>首次启动拉起的是独立的后台实例，前台那个 cmd 只是启动器。关掉它、甚至从任务管理器里关掉启动器，后台照样在跑。真要确认，看任务管理器里的 <code>python.exe</code>，或者看日志有没有新行。</p>
+    <h4 style="margin-top:14px">2) 后台模式是显式参数</h4>
+    <p>vbs 传 <code>hidden</code> 进去，cmd 才会进入守护循环；不带参数走的是「启动一次然后退出」。这样就不会出现后台又拉起后台的递归。</p>
+  </div>
+</section>
+
+<!-- ============ 4 ============ -->
+<section id="deploy">
+  <h2><span class="n">04</span>部署（三步，两分钟）</h2>
+
+  <div class="flow">
+    <div class="step">
+      <div class="idx">1</div>
+      <div>
+        <h5>解压到固定位置</h5>
+        <p>例如 <code>D:\CampusAutoLoginWeb</code>。解压完就不要再移动 —— 开机自启里写的是绝对路径，挪了地方要么重新跑一次安装，要么双击一次启动器（它会自动刷新自启路径）。</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="idx">2</div>
+      <div>
+        <h5>双击 install-autologin-web.cmd</h5>
+        <p>写自启（指向 <code>start-hidden.vbs</code>）→ 尝试注册登录时触发的计划任务（非管理员会跳过，不影响使用）→ 立刻后台拉起 → 校验锁里的 pid，打印结果。</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="idx">3</div>
+      <div>
+        <h5>验证判断逻辑</h5>
+        <p>双击启动器看它是不是报 already running，或直接跑 <code>run-autologin-web.cmd --diagnose</code>，会输出：账号、默认网关、在线与否、在不在校园网、是否处于免打扰窗口、该不该动作。</p>
+      </div>
+    </div>
+  </div>
+
+  <pre><code><span class="cmt">:: 只看判断，不动手</span>
+run-autologin-web.cmd --diagnose
+
+<span class="cmt">:: 手动跑一轮，会打开浏览器并打印每个候选页的结果</span>
+run-autologin-web.cmd --once
+
+<span class="cmt">:: 忽略免打扰窗口强行登录（服务端多半还是会拒）</span>
+run-autologin-web.cmd --force
+
+<span class="cmt">:: 彻底卸载：删自启 + 杀监督窗口 + 杀 python + 清锁</span>
+uninstall-autologin-web.cmd</code></pre>
+</section>
+
+<!-- ============ 5 ============ -->
+<section id="config">
+  <h2><span class="n">05</span>配置项（autologin-web.json）</h2>
+  <p class="lead">改完保存即可，下一轮循环生效，不用重启。JSON 里不要加注释。</p>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>键</th><th>默认值</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>user</td><td>—</td><td>学号 / 上网账号</td></tr>
+        <tr><td>password</td><td>—</td><td>密码，初始密码通常是身份证后 6 位</td></tr>
+        <tr><td>portal</td><td>http://172.172.255.20/</td><td>认证门户根地址</td></tr>
+        <tr><td>ac</td><td>10.100.0.235</td><td>重定向器地址，用来触发带参跳转</td></tr>
+        <tr><td>net</td><td>校园网</td><td>出口名：校园网 / 中国移动 / 中国联通</td></tr>
+        <tr><td>skip_start</td><td>00:00</td><td>免打扰窗口开始</td></tr>
+        <tr><td>skip_end</td><td>06:30</td><td>免打扰窗口结束</td></tr>
+        <tr><td>window_login</td><td>false</td><td><code>false</code> 窗口内一次睡到结束；<code>true</code> 窗口内也尝试登录</td></tr>
+        <tr><td>online_interval</td><td>3600</td><td>已经能上网时，隔多少秒再看一眼</td></tr>
+        <tr><td>debug_port</td><td>9333</td><td>Edge 调试端口，被占用时换一个</td></tr>
+        <tr><td>headless</td><td>false</td><td><code>true</code> 不开可见窗口，调试期建议保持 <code>false</code></td></tr>
+        <tr><td>login_wait</td><td>25</td><td>点完登录后等多久用探针验收（秒）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card infobox">
+    <span class="k">免打扰窗口为什么默认开着</span>
+    <p>服务端在 <code>00:02 – 06:29</code> 这一段会对该账号拒绝认证，返回「不在认证时段内」。这段时间反复提交毫无意义，还会把自己的账号刷进风控，所以默认整段睡过去，到 06:30 之后再看。确认服务端放通时刻后，把 <code>skip_end</code> 调准即可。</p>
+  </div>
+</section>
+
+<!-- ============ 6 ============ -->
+<section id="log">
+  <h2><span class="n">06</span>看日志：一行一个事件</h2>
+  <p class="lead"><code>autologin-web.log</code> 是单行 JSON，8MB 自动轮转。别用 PowerShell 5 的 <code>Get-Content</code> 直接看，它会按本地代码页解码把中文显示成乱码；用记事本、VS Code，或 python 读。</p>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>event</th><th>含义</th><th>要不要管</th></tr></thead>
+      <tbody>
+        <tr><td>start</td><td>守护启动。note 里带间隔、免打扰窗口、窗口内是否登录</td><td>正常</td></tr>
+        <tr><td>skip</td><td>撞到免打扰窗口，一次睡到 <code>skip_end</code>，中途不探测</td><td>正常</td></tr>
+        <tr><td>window</td><td>窗口内仍尝试登录（只在 <code>window_login=true</code> 时出现）</td><td>正常</td></tr>
+        <tr><td>login</td><td><span class="st a">ok:true</span> 探针确认已经能上网</td><td>成功</td></tr>
+        <tr><td>login</td><td><span class="st c">ok:false</span> note 里逐个候选页写了失败原因</td><td>要看 note</td></tr>
+        <tr><td>abort</td><td>已有实例在跑，本次退出（单实例保护）</td><td>正常</td></tr>
+        <tr><td>once</td><td><code>--once</code> 的单次运行结果</td><td>调试用</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <pre><code><span class="cmt"># 常见的一条成功记录（字段顺序可能不同）</span>
+{"event":"login","ok":true,"note":"探针已通 204","ts":"2026-11-06 06:31:12"}
+
+<span class="cmt"># 失败时会写清每个候选页为什么不行</span>
+{"event":"login","ok":false,
+ "note":"AC 重定向页 无登录表单；门户根 无登录表单；login.jsp 打不开；兜底 HTTP 未连通",
+ "ts":"2026-11-06 00:03:40"}</code></pre>
+</section>
+
+<!-- ============ 7 ============ -->
+<section id="files">
+  <h2><span class="n">07</span>文件清单</h2>
+  <div class="tw">
+    <table>
+      <thead><tr><th>文件</th><th>作用</th></tr></thead>
+      <tbody>
+        <tr><td>autologin-web.py</td><td>主程序：分层判断、调度、免打扰窗口、浏览器登录、探针验收、单实例锁、日志</td></tr>
+        <tr><td>cdp.py</td><td>自己实现的 Chrome DevTools 客户端（WebSocket + HTTP 发现），用来驱动 Edge，不依赖 selenium / playwright</td></tr>
+        <tr><td>autologin-web.json</td><td>配置</td></tr>
+        <tr><td>run-autologin-web.cmd</td><td>入口：无参 = 首次启动并转后台；<code>hidden</code> = 后台守护；带参 = 直接执行</td></tr>
+        <tr><td>start-hidden.vbs</td><td>无窗口拉起（开机自启与首次启动都用它），纯 ASCII 以免 VBScript 编译器被中文注释噎住</td></tr>
+        <tr><td>install-autologin-web.cmd</td><td>部署：写自启 + 立即后台启动 + 校验 pid</td></tr>
+        <tr><td>uninstall-autologin-web.cmd</td><td>卸载：删自启 → 杀监督窗口 → 杀 python → 关调试浏览器 → 清锁</td></tr>
+        <tr><td>net_try.py / stu_login.py</td><td>兜底 HTTP 登录（浏览器路线失败时用），也用于 <code>--once</code> 的链路诊断</td></tr>
+        <tr><td>使用说明.txt / 使用说明.html</td><td>同一份文档的纯文本版与网页版</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ 8 ============ -->
+<section id="trouble">
+  <h2><span class="n">08</span>排错对照</h2>
+
+  <div class="grid g2">
+    <div class="card warnbox">
+      <span class="k">症状</span>
+      <h4>只看到浏览器打开，表单没填</h4>
+      <p>多半是当前页面不是带参数的真正登录页。看日志 note 里哪个候选页「无登录表单」，以及有没有走到兜底 HTTP 登录。首次真实断网时，AC 的 302 才会把 <code>wlanuserip</code> 这组参数带上。</p>
+    </div>
+    <div class="card warnbox">
+      <span class="k">症状</span>
+      <h4>提示「Web认证接入设备不存在」</h4>
+      <p>服务器找不到该由哪台接入设备处理这次认证 —— 因为会话里没有 AC 带过来的密文参数。不是密码错，也不是时段问题。必须让 AC 的 302 先把浏览器带到认证页。</p>
+    </div>
+    <div class="card warnbox">
+      <span class="k">症状</span>
+      <h4>双击后窗口一闪就没了</h4>
+      <p>这是设计行为：启动器确认后台实例起来后自动关窗。判断是否真在跑 —— 任务管理器看 <code>python.exe</code>，或看日志有没有新行。</p>
+    </div>
+    <div class="card warnbox">
+      <span class="k">症状</span>
+      <h4>日志中文乱码</h4>
+      <p>文件本身是 UTF-8。PowerShell 5 的 <code>Get-Content</code> 按系统代码页读会乱，换编辑器或 <code>python -c "print(open('autologin-web.log',encoding='utf-8').read())"</code>。</p>
+    </div>
+    <div class="card warnbox">
+      <span class="k">症状</span>
+      <h4>换了文件夹就不自启了</h4>
+      <p>自启里是绝对路径。在新目录双击一次 <code>run-autologin-web.cmd</code>，它会重写自启；或者重跑安装脚本。旧目录那份记得删掉，免得两份抢着跑。</p>
+    </div>
+    <div class="card warnbox">
+      <span class="k">症状</span>
+      <h4>杀不掉 / 杀了又起来</h4>
+      <p>守护 cmd 会在 python 异常退出后 15 秒重启它。所以要用卸载脚本：它先杀监督 cmd，再杀 python。手动处理就 <code>taskkill /T</code> 连父进程一起杀。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 9 ============ -->
+<section id="limit">
+  <h2><span class="n">09</span>边界与注意</h2>
+  <div class="grid g2">
+    <div class="card errbox">
+      <span class="k">做不到</span>
+      <h4>时段封禁期内的认证</h4>
+      <p>服务端在窗口期直接拒绝认证。客户端再怎么提交都只会拿到拒绝话术。脚本能做的是「窗口一结束立刻登上」，而不是「在窗口里绕过」。</p>
+    </div>
+    <div class="card infobox">
+      <span class="k">设计取舍</span>
+      <h4>不伪造任何身份</h4>
+      <p>用的是配置里的真实账号口令，走的是页面自己的登录流程，不改 MAC、不改 IP、不碰服务端接口。本质是把「人工点一次」变成「自动点一次」。</p>
+    </div>
+    <div class="card infobox">
+      <span class="k">运行成本</span>
+      <h4>在线时几乎不耗资源</h4>
+      <p>在线状态下一次探针 + 一次长睡眠（默认 1 小时）。只有真正需要认证时才启动 Edge，登录完成或超时后按配置决定是否关闭浏览器。</p>
+    </div>
+    <div class="card infobox">
+      <span class="k">兼容性</span>
+      <h4>不需要装任何库</h4>
+      <p>只用 Python 3 标准库；浏览器用系统已装的 Edge（找不到时回退 Chrome）。CDP 客户端是自带实现，因此不会被 pip 源、内网代理卡住。</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <span class="k">这一版改了什么</span>
+    <h4>首次启动自动关窗 + 全程静默</h4>
+    <ul>
+      <li>启动器确认后台实例起来后自动退出关窗，不再需要手动关窗口</li>
+      <li>后台模式改为显式 <code>hidden</code> 参数，由 vbs 传入，杜绝递归启动</li>
+      <li>开机自启只走 <code>start-hidden.vbs</code>，窗口样式 0，无任务栏图标</li>
+      <li>重复双击提示 <code>already running</code> 并自动关窗，锁里的废 pid 会被自动接管</li>
+      <li>安装器增加 pid 校验；卸载器改为先杀监督 cmd 再杀 python</li>
+      <li>所有 <code>.cmd</code> / <code>.vbs</code> 统一为纯 ASCII + CRLF，规避中文注释导致的解析错误</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  CampusAutoLoginWeb · 单文件说明文档，可直接双击用浏览器打开<br>
+  <code>使用说明.html</code> 与 <code>使用说明.txt</code> 内容一致，前者更适合阅读与分享
+</footer>
+
+</div>
+</body>
+</html>

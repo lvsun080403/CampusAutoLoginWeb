@@ -1,0 +1,19 @@
+# 运行时产物
+__pycache__/
+*.py[cod]
+
+# 真实配置与日志（里面有学号密码，绝不入库）
+autologin-web.json
+autologin-web.log
+autologin-web-supervisor.log
+autologin-web.lock
+*.log
+*.lock
+
+# 本地临时
+.venv/
+venv/
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

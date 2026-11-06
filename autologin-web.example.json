@@ -1,0 +1,27 @@
+{
+  "user": "你的学号",
+  "password": "你的密码",
+  "portal": "http://172.172.255.20/",
+  "ac": "10.100.0.235",
+  "net": "校园网",
+  "campus_gw": "192.168.1.1",
+  "skip_start": "00:00",
+  "skip_end": "06:30",
+  "window_login": false,
+  "window_cooldown": 60,
+  "interval": 15,
+  "online_interval": 3600,
+  "exit_when_online": false,
+  "cooldown": 30,
+  "backoff_factor": 1.6,
+  "backoff_max": 300,
+  "debug_port": 9333,
+  "headless": false,
+  "keep_browser": true,
+  "login_wait": 25,
+  "probes": [
+    "http://connect.rom.miui.com/generate_204",
+    "http://www.gstatic.com/generate_204",
+    "http://223.5.5.5/"
+  ]
+}
